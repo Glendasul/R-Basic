@@ -1,0 +1,145 @@
+#####################################
+
+#dataframes manipulation 
+getwd()
+setwd("C:/Users/root/Documents/CitiBike")
+data_dir <- '.'
+#remember to import reshape
+library(reshape)
+
+load('trips_original.RData')
+View(head(trips,1000))
+nrow(trips)
+
+#group_by, summarize, n()
+trips %>%
+  group_by(birth.year) %>%
+  summarize(num_trips=n())
+
+plot_data <- trips %>%
+  group_by(ymd) %>%
+  summarize(num_trips = n())
+
+
+plot_data <- trips %>%
+  group_by(gender, birth.year) %>%
+  summarize(num_trips=n())
+
+##################################
+##Bash exercises but in R
+####################################
+
+# count the number of unique stations
+stations <- unique(trips$start.station.id)
+stations 
+length(stations) #330
+
+
+# count the number of unique bikes
+bikes <- unique(trips$bikeid)
+length(bikes) #6689
+
+# extract all of the trip start times
+s <- unique(trips$starttime)
+s <- strftime(trips$starttime, "%T")
+head(s)
+
+#?strftime
+
+# count the number of trips per day
+start_times <- transform(trips, 
+              startdate = strftime(trips$starttime, "%D")) #transform adds a column
+head(start_times) #now we have a column with the start date in mm/dd/yy format
+
+trips_per_day <- start_times %>%  group_by(startdate) %>%   summarize(n_rows = n())
+head(trips_per_day)
+tail(trips_per_day)
+sum(trips_per_day$n_rows)
+
+# find the day with the most rides
+g<-trips_per_day[ order(-trips_per_day[,2]), ]
+#alternatively:
+g <- arrange(trips_per_day, desc(n_rows))
+g
+g[ 1 , ]
+
+
+# find the day with the least rides
+least_rides <- arrange(trips_per_day, n_rows)
+least_rides
+least_rides[ 1 , ]
+
+# find the id of the bike with the most rides
+bikeIDs <- trips %>% group_by(bikeid) %>% summarize(num_trips = n())
+bikeIDs
+bikeIDs <- arrange(bikeIDs, desc(num_trips))
+bikeIDs[1,]
+#could have also combined the top line as:
+example <- arrange(bikeIDs, desc(num_trips))[1,]
+sum(bikeIDs$num_trips)
+
+
+# count the number of riders by gender and birth year   "birth.year"  "gender"    
+birth_gender <- filter(trips, gender!="Unknown") %>% group_by(birth.year, gender) %>% summarize(num = n())
+View(birth_gender)
+qplot(data = birth_gender, x = birth.year,  fill = gender) + facet_wrap(~gender)
+qplot(data = birth_gender, x = birth.year, y = num,  fill = gender) + facet_wrap(~gender)
+
+# compute the average trip length
+total_duration <- sum(as.numeric(trips$tripduration))
+average_duration <- total_duration/nrow(trips)
+average_duration
+
+###############
+#Compute average number of trips by hour of day (across all days), and plot results
+###############
+trips_with_hour <- transform(hour = strftime(trips$starttime, format = "%H"))
+head(trips_with_hour)
+
+#nrow(unique(trips$ymd)) was return null for some reason.
+#as a result use NROW which treats a vector as a 1 column matrix
+NROW(unique(trips$ymd))
+
+trips_per_day_per_hour <- trips_with_hour %>% group_by(hour) %>% 
+  summarize(num=n()/NROW(unique(trips$ymd)))
+
+View(trips_per_day_per_hour)
+qplot(data = trips_per_day_per_hour, x = hour, y = num )
+
+###########################################################################################
+#Compute average and std dev of tripduration btwn all pairs of stations (longest? shortest?)
+###########################################################3
+names(trips)
+start_end_duration <- trips[c(5,9,1)]
+#^^ may be replaced with sed <- subset(trips, select=c("start.station.name", "end.station.name","tripduration" ))
+View(head(start_end_duration, 100))
+replaceSED <- head(start_end_duration)
+
+#didnt work: transform(replaceSED, station_pair = c(start.station.name, end.station.name), duration =  tripduration)
+replaceSED$NewCol <- do.call(paste, c(replaceSED[c("start.station.name",
+                                                   "end.station.name")], sep = " TO "))
+A <- replaceSED %>% group_by(NewCol) %>% summarize(nrows=n())
+A
+
+head(replaceSED)
+
+#REGULAR EXPRESSIONS
+# use the first 6 rows of the iris dataset as a toy dataframe
+df <- head(iris)
+
+# look at the fifth row
+df[5, ]
+
+#Get names
+names(df)
+#Grep
+grep('Length', names(df))
+grep('Length', names(df), value = T)
+
+
+grepl('to', iris$Species)
+
+#subset will pull out rows where the CONDITION is true. Can't specify rows. 
+subset(df, c(T,F,F,T,T,F)) #works
+subset(iris, grep('t',df$Species)) #will not work because condition in grep isn't boolean
+subset(iris, grepl('t',df$Species))
