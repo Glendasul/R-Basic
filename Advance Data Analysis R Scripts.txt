@@ -1,0 +1,121 @@
+### By: Glenda Ascencio                                                             ### September 18, 2016
+
+##################################### How to Analyse Data Using R ##########################################
+## 1) Get the current working directory
+getwd()
+
+## 2) Setting the current working directory
+setwd("C:/Users/root/Documents/CitiBike")
+data_dir <- '.'
+
+## 3) Importing the reshape library 
+library(reshape)
+
+## 4) Loading the trips_original.RData
+load('trips_original.RData')
+
+## 5) Viewing only the 1000 first rows of the trips data set
+View(head(trips,1000))
+
+## 6) Counting the number of rows in the trips data set
+nrow(trips)
+
+
+## 7) Using group_by and summarize to find total number of trips we had per year
+plot_data <- trips %>%
+  group_by(ymd) %>%
+  summarize(num_trips = n())
+
+## 8) Finding the total number of trips we had per year by gender
+plot_data <- trips %>%
+  group_by(gender, birth.year) %>%
+  summarize(num_trips=n())
+
+## 9) Counting the number of unique stations
+stations <- unique(trips$start.station.id)
+
+## 10) Viewing the number of unique stations
+stations
+
+## 11) Counting the total number of rows of the unique number of station 
+length(stations) 
+
+
+## 12) Counting the number of unique bikes
+bikes <- unique(trips$bikeid)
+
+## 13) Seeing how many data entries the number of unique bikes has
+length(bikes) 
+
+## 14) Extracting all of the trip start times
+trips_start_time <- unique(trips$starttime)
+trips_start_time <- strftime(trips$starttime, "%T")
+
+## 15) Counting the number of trips per day
+start_times <- transform(trips, 
+              startdate = strftime(trips$starttime, "%D")
+                        ) #transform adds a column
+
+## 16) Finding trips per day
+trips_per_day <- start_times %>%  group_by(startdate) %>%   summarize(n_rows = n())
+
+## 17) Sum, average, min, max all the rows for the trips per day 
+sum(trips_per_day$n_rows)
+mean(trips_per_day$n_rows)
+min(trips_per_day$n_rows)
+max(trips_per_day$n_rows)
+
+
+## 18) Finding the day with the most rides
+g<-trips_per_day[ order(-trips_per_day[,2]), ]
+
+## 19) Aalternatively:
+g <- arrange(trips_per_day, desc(n_rows))
+g[ 1 , ]
+
+## 20) Finding the day with the least rides
+least_rides <- arrange(trips_per_day, desc(n_rows))
+least_rides
+least_rides[ 1 , ]
+
+## 21) Finding the id of the bike with the most rides
+bikeIDs <- trips %>% group_by(bikeid) %>% summarize(num_trips = n())
+bikeIDs <- arrange(bikeIDs, desc(num_trips))
+bikeIDs[1,]
+
+## 22) This is another way for finding the id of the bike with the most rides
+example <- arrange(bikeIDs, desc(num_trips))[1,]
+sum(bikeIDs$num_trips)
+
+
+## 23) Counting the number of riders by gender and birth year   "birth.year"  "gender"    
+birth_gender <- filter(trips, gender!="Unknown") %>% group_by(birth.year, gender) %>% summarize(num = n())
+
+## 24) Plotting the number of riders by gender and birth year
+qplot(data = birth_gender, x = birth.year,  fill = gender) + facet_wrap(~gender)
+qplot(data = birth_gender, x = birth.year, y = num,  fill = gender) + facet_wrap(~gender)
+
+## 25) Computing the average trip length
+total_duration <- sum(as.numeric(trips$tripduration))
+average_duration <- total_duration/nrow(trips)
+average_duration
+
+## 26) Computing the average number of trips by hour of day (across all days), and plot results
+trips_with_hour <- transform(hour = strftime(trips$starttime, format = "%H"))
+head(trips_with_hour)
+
+## 27) Total trips per day 
+trips_per_day_per_hour <- trips_with_hour %>% group_by(hour) %>% 
+  summarize(num=n()/NROW(unique(trips$ymd)))
+
+## 28) Computing the average and std dev of tripduration btwn all pairs of stations (longest? shortest?)
+start_end_duration <- trips[c(5,9,1)]
+  ## may be replaced with sed <- subset(trips, select=c("start.station.name", "end.station.name","tripduration" ))
+View(head(start_end_duration, 100))
+replaceSED <- head(start_end_duration)
+
+  ## Didnt work, therefore, use this script
+transform(replaceSED, station_pair = c(start.station.name, end.station.name), duration =  tripduration)
+replaceSED$NewCol <- do.call(paste, c(replaceSED[c("start.station.name",
+                                                   "end.station.name")], sep = " TO "))
+A <- replaceSED %>% group_by(NewCol) %>% summarize(nrows=n())
