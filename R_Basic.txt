@@ -1,108 +1,50 @@
-#R Review
-################################################
-x <- 9 #set a var
-x <- c(2,7,9) #make a list of nums
+### By: Glenda Ascencio                                                             ### September 18, 2016
 
-#C() - combine/concatenate
+##################################### Basic Scripts on How to Analyse Data Using R ##########################################
+## Assigning variables
+x <- c(2,7,9) 
+
+## the c() function is utilized to combine and contatenate a list of number, strings...
+C() - combine/concatenate
+
+## Dividing list of concatenated list of number
 c(1:5) / c(6:10)
-
-
 c(1:5) / (c(6:10)/2)
 
+## Saving a list of categorical data into the glenda variable
+glenda <- c("male", "female", "male", "male", "female")
 
-
-c("male", "female", "male", "male","female")
-
-####################################################
-#factor gives levels
+## Factor gives levels
 factor(c("male", "female", "male", "male","female")) 
-factor(c("male", "female", "male", "male","female ")) #3 levels because last female has extra space
 
-x<-c("male", "female", "male", "male","female") #just a list of male/female
-View(x)
-str(x) #converts it to string
+## Convering a variable (in this case x) to a string
+str(x)
 
-y <- factor(x)
-View(y) #they look the same
-str(y)
-x==y
-
-levels(y) <- c("Men","Womyn") #you can change the labels .
-y #but since Female is before Male alphabetically, the labels get mixed up when M is before W.
-levels(y) <- c("Womyn","Men") #you can change the labels .
-y
-
-table(y) #very useful command: table. gives u a count of all the levels. 
+## Using the table() function that gives u a count of all the levels
+table(y) 
 as.character(y)
 as.numeric(y)
 
-seasons <- c("fall", "spring", "fall", "summer", "winter",  "summer",
-             "winter","spring", "fall", "summer", "spring", "fall", "summer", 
-             "winter", "fall")
-
-factor(seasons)
-table(seasons)
-
+## Ordering the seasons in the order that you want
 seasons <- factor(seasons, levels = c("spring", "summer", "fall", "winter"), ordered = T)
 table(seasons)
 
-
-#########################################
-
-#exploring rnorm. Take n samples from a normal distribution
+## Exploring the rnorm() function 
 rnorm(mean = 12, sd = 3, n=1)
 
-
-#plot the distribution
+## Plotting the distribution
 data = rnorm(mean=13, sd =  2, n = 5)
 data
 qplot(data)
 
-
-data = rnorm(mean=13, sd =  2, n = 30)
-data
-qplot(data)
-
-
-data = rnorm(mean=13, sd =  2, n = 100)
-data
-qplot(data)
-
-data = rnorm(mean=13, sd =  2, n = 1000)
-data
-qplot(data)
-
-
-
-#lets make a data frame.
-
-df<- data.frame(gender=c("male", "female", "male", "male","female"), 
+## Making a data frame.
+df <- data.frame(gender=c("male", "female", "male", "male","female"), 
                 name = c(1:5), 
                 age=20:24, 
-                height=rnorm(mean = 70, sd = 2.5,  n=5))
+                height=rnorm(mean = 70, sd = 2.5,  n=5)
+                )
+  ## Viewing the recent made data frame
 View(df)
 
-
-#plotting examples
-n <- 500
-gender_males <- rep("male", n)
-height_males <- rnorm(n=n, mean = 70, sd = 2.5)
-height_females <- rnorm(n, 66, 2.5)
-gender_females <- rep("female",n)
-
-people <- data.frame(gender=c(gender_males, gender_females), 
-                     height=c(height_males, height_females))
-View(people)
-
-nrow(people) #gets number of rows in a dataframe
-
-
-qplot(data=people,  x = height, fill=gender)
-
-qplot(x = height, data=people, fill=gender) + facet_wrap( ~ gender)
-
-
-people$eye_color <- sample(c("brown", "blue", "green"), nrow(people), replace=T)
-View(people)
-
-qplot(x = height, data=people, fill=gender) + facet_wrap(~ eye_color)
+## Obtaining the number of rows in a dataframe
+nrow(people) 
